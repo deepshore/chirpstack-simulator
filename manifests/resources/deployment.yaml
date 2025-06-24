@@ -1,0 +1,56 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: chirpstack-simulator-nextevolution
+  namespace: chirpstack
+  labels:
+    app: chirpstack-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chirpstack-simulator
+  template:
+    metadata:
+      labels:
+        app: chirpstack-simulator
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: '9000'
+        prometheus.io/scheme: http
+        prometheus.io/scrape: 'true'
+    spec:
+      volumes:
+        - name: chirpstack-simulator-config
+          secret:
+            secretName: chirpstack-simulator-config
+            defaultMode: 420  
+      containers:
+        - resources:
+            limits:
+              cpu: '1'
+              memory: 2Gi
+            requests:
+              cpu: '500m'
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          name: chirpstack-simulator
+          command:
+            - /bin/sh
+            - '-c'
+            - ./chirpstack-simulator -c /data-config/config.toml
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: chirpstack-simulator-config
+              mountPath: /data-config
+              readOnly: true
+          terminationMessagePolicy: File
+          image: schwarzit-xx-sit-siot-docker-virtual.jfrog.io/chirpstack/chirpstack-simulator:v22
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
