@@ -20,3 +20,4 @@ deploy:
 	@echo "Deploying the project..."
 	@kubectl apply -k manifests \
 		--kubeconfig=$(KUBECONFIG)
+	@kubectl rollout restart deployment/chirpstack-simulator-nextevolution -n chirpstack --kubeconfig=$(KUBECONFIG)
